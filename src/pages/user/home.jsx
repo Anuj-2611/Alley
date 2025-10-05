@@ -16,6 +16,7 @@ const Home = () => {
   };
 
   const [products, setProducts] = useState([]);
+  const [bestSellers, setBestSellers] = useState([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -29,7 +30,19 @@ const Home = () => {
       }
     };
 
+    const fetchBestSellers = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/reports/best-sellers");
+        const data = await res.json();
+        setBestSellers(data);
+        console.log("Best sellers:", data);
+      } catch (error) {
+        console.error("Failed to load best sellers:", error);
+      }
+    };
+
     fetchProducts();
+    fetchBestSellers();
   }, []);
   return (
     <><Navbar />
@@ -88,24 +101,61 @@ const Home = () => {
           </svg>
         </button>
 
-        {/* Scrollable Image Row */}
+        {/* Scrollable Product Row */}
         <div
           ref={scrollRef}
           className="flex gap-8 overflow-x-auto scroll-smooth scrollbar-hide px-2"
         >
-          {[
-            'tshirt-1.png',
-            'tshirt-2.png',
-            'tshirt-3.png',
-            'tshirt-4.png',
-          ].map((file, idx) => (
-            <img
-              key={idx}
-              src={`src/assets/img/home/${file}`}
-              alt={`T-shirt ${idx + 1}`}
-              className="w-74 h-102 object-cover rounded-lg shadow-md flex-shrink-0"
-            />
-          ))}
+          {bestSellers.length > 0 ? (
+            bestSellers.slice(0, 6).map((product, idx) => {
+              // Find the full product details
+              const fullProduct = products.find(p => p._id === product.productId);
+              return (
+                <div key={idx} className="w-64 flex-shrink-0 bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                  <div className="relative">
+                    <img
+                      src={fullProduct?.images?.[0] || `src/assets/img/home/tshirt-${(idx % 4) + 1}.png`}
+                      alt={product.productTitle || `Product ${idx + 1}`}
+                      className="w-full h-64 object-cover"
+                    />
+                    <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                      #{idx + 1} Best Seller
+                    </div>
+                    <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                      {product.quantitySold} sold
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold text-stone-900 text-sm mb-1 line-clamp-2">
+                      {product.productTitle /* || `Product ${product.productId}`*/ }
+                    </h3>
+                    <p className="text-xs text-stone-600 mb-2">{product.category}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-stone-900">₹{product.avgPrice}</span>
+                      <button className="bg-stone-800 text-white px-3 py-1 rounded text-xs hover:bg-stone-700 transition-colors">
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            // Fallback to static images if no data
+            [
+              'tshirt-1.png',
+              'tshirt-2.png',
+              'tshirt-3.png',
+              'tshirt-4.png',
+            ].map((file, idx) => (
+              <img
+                key={idx}
+                src={`src/assets/img/home/${file}`}
+                alt={`T-shirt ${idx + 1}`}
+                className="w-74 h-102 object-cover rounded-lg shadow-md flex-shrink-0"
+              />
+            ))
+          )}
         </div>
 
         {/* Right Arrow */}

@@ -58,9 +58,27 @@ router.get("/best-sellers", async (_req, res) => {
   since.setDate(since.getDate() - 30);
   const data = await ProductSale.aggregate([
     { $match: { date: { $gte: since } } },
-    { $group: { _id: "$productId", quantitySold: { $sum: "$quantitySold" } } },
+    { 
+      $group: { 
+        _id: "$productId", 
+        quantitySold: { $sum: "$quantitySold" },
+        productTitle: { $first: "$productTitle" },
+        category: { $first: "$category" },
+        avgPrice: { $avg: "$price" }
+      } 
+    },
     { $sort: { quantitySold: -1 } },
     { $limit: 10 },
+    {
+      $project: {
+        productId: "$_id",
+        productTitle: "$productTitle",
+        category: 1,
+        quantitySold: 1,
+        avgPrice: { $round: ["$avgPrice", 2] },
+        _id: 0
+      }
+    }
   ]);
   res.json(data);
 });

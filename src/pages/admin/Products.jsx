@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Plus, Edit, Trash2, Eye } from 'lucide-react';
+import { Search, Filter, Plus, Edit, Trash2, Eye, Package, AlertTriangle } from 'lucide-react';
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -9,6 +9,9 @@ export default function Products() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editingStock, setEditingStock] = useState(null);
+  const [newStock, setNewStock] = useState('');
+  const [stockLoading, setStockLoading] = useState(false);
 
   const loadData = async () => {
     try {
@@ -70,6 +73,59 @@ export default function Products() {
       console.error('Failed to delete product:', err);
       alert('Failed to delete product');
     }
+  };
+
+  const handleStockEdit = (product) => {
+    setEditingStock(product._id);
+    setNewStock(product.stock.toString());
+  };
+
+  const handleStockCancel = () => {
+    setEditingStock(null);
+    setNewStock('');
+  };
+
+  const handleStockSave = async (productId) => {
+    if (!newStock || isNaN(newStock) || parseInt(newStock) < 0) {
+      alert('Please enter a valid stock quantity');
+      return;
+    }
+
+    try {
+      setStockLoading(true);
+      
+      const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ stock: parseInt(newStock) }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update stock');
+      }
+
+      // Update local state
+      setProducts(prev => prev.map(p => 
+        p._id === productId ? { ...p, stock: parseInt(newStock) } : p
+      ));
+
+      setEditingStock(null);
+      setNewStock('');
+    } catch (err) {
+      console.error('Error updating stock:', err);
+      alert('Failed to update stock');
+    } finally {
+      setStockLoading(false);
+    }
+  };
+
+  const getStockAlertLevel = (stock) => {
+    if (stock === 0) return { level: 'critical', color: 'text-red-600 bg-red-50', icon: AlertTriangle };
+    if (stock <= 10) return { level: 'warning', color: 'text-yellow-600 bg-yellow-50', icon: AlertTriangle };
+    if (stock <= 30) return { level: 'info', color: 'text-blue-600 bg-blue-50', icon: Package };
+    return { level: 'good', color: 'text-green-600 bg-green-50', icon: Package };
   };
 
   if (loading) {
@@ -185,13 +241,44 @@ export default function Products() {
                     ₹{product.price}
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      product.stock > 10 ? 'bg-green-100 text-green-800' : 
-                      product.stock > 0 ? 'bg-yellow-100 text-yellow-800' : 
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {product.stock} in stock
-                    </span>
+                    {editingStock === product._id ? (
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="number"
+                          value={newStock}
+                          onChange={(e) => setNewStock(e.target.value)}
+                          className="w-20 px-2 py-1 border border-stone-300 rounded text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                          min="0"
+                        />
+                        <button
+                          onClick={() => handleStockSave(product._id)}
+                          disabled={stockLoading}
+                          className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 disabled:opacity-50"
+                        >
+                          {stockLoading ? '...' : 'Save'}
+                        </button>
+                        <button
+                          onClick={handleStockCancel}
+                          className="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStockAlertLevel(product.stock).color}`}>
+                          {React.createElement(getStockAlertLevel(product.stock).icon, { className: "w-3 h-3 mr-1" })}
+                          {product.stock} in stock
+                        </div>
+                        <button
+                          onClick={() => handleStockEdit(product)}
+                          className="p-1 text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                          title="Edit Stock"
+                        >
+                          <Edit size={14} />
+                        </button>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">

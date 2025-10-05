@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
@@ -11,13 +11,15 @@ import {
   Settings, 
   LogOut,
   Menu,
-  X
+  X,
+  TrendingUp
 } from 'lucide-react';
 
 export default function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -39,6 +41,7 @@ export default function AdminLayout() {
     { icon: Tag, label: 'Categories', path: '/admin/categories' },
     { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
     { icon: Users, label: 'Customers', path: '/admin/customers' },
+    { icon: TrendingUp, label: 'AI Predictions', path: '/admin/predictions' },
     { icon: BarChart3, label: 'Reports', path: '/admin/reports' },
     { icon: Settings, label: 'Settings', path: '/admin/settings' },
   ];
@@ -75,36 +78,52 @@ export default function AdminLayout() {
           </button>
         </div>
 
-        <nav className="p-4 space-y-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className="flex items-center space-x-3 px-4 py-3 text-stone-900 rounded-lg hover:bg-amber-700 hover:text-white transition-colors"
-              onClick={() => setIsSidebarOpen(false)}
-            >
-              <item.icon size={20} />
-              <span className="font-medium">{item.label}</span>
-            </Link>
-          ))}
-        </nav>
+        {/* Sidebar Content: make column with scrollable nav and sticky footer */}
+        <div className="flex flex-col h-[calc(100%-64px)]">{/* subtract header height (~64px) */}
+          <nav className="flex-1 overflow-y-auto p-4 space-y-2 pb-28">
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.path || (item.path === '/admin' && location.pathname === '/admin');
+              const baseClasses = 'flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors';
+              const activeClasses = 'bg-amber-700 text-white';
+              const inactiveClasses = 'text-stone-900 hover:bg-amber-700 hover:text-white';
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}
+                  onClick={() => setIsSidebarOpen(false)}
+                >
+                  <item.icon size={20} />
+                  <span className="font-medium">{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-amber-800">
-          <div className="mb-4 px-4 py-2">
-            <p className="text-sm font-medium text-stone-900">
-              {userInfo?.name || 'Admin'}
-            </p>
-            <p className="text-xs text-stone-700">
-              {userInfo?.role || 'Administrator'}
-            </p>
+          <div className="mt-auto p-4 border-t border-amber-800 bg-[#caa47c]">
+            <div className="mb-3 px-4 py-2">
+            {(() => {
+              const displayName = (userInfo?.name || '').trim() || 'Admin';
+              const displayRole = (userInfo?.role || '').trim() || 'Administrator';
+              const shouldShowRole = displayRole.toLowerCase() !== displayName.toLowerCase();
+              return (
+                <>
+                  <p className="text-sm font-medium text-stone-900">{displayName}</p>
+                    {shouldShowRole && (
+                      <p className="text-xs text-stone-700">{displayRole}</p>
+                    )}
+                </>
+              );
+            })()}
           </div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-          >
-            <LogOut size={16} />
-            <span>Log Out</span>
-          </button>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <LogOut size={16} />
+              <span>Log Out</span>
+            </button>
+          </div>
         </div>
       </aside>
 

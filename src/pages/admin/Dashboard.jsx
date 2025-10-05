@@ -139,6 +139,10 @@ export default function Dashboard() {
                   <span className="text-sm font-medium text-stone-700">Product {item._id}</span>
                   <span className="text-sm font-semibold text-green-600">{item.quantitySold} sold</span>
                 </div>
+                <div className="flex items-center justify-between text-xs text-stone-500">
+                  <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded-full">{item.category}</span>
+                  <span>₹{item.avgPrice}</span>
+                </div>
               </div>
             ))
           ) : (

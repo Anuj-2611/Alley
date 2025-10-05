@@ -13,6 +13,7 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import adminUsersRoutes from "./routes/adminUsersRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
+import predictionRoutes from "./routes/predictionRoutes.js";
 
 dotenv.config();
 
@@ -20,7 +21,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect("mongodb+srv://anujgodhani76842_db_user:anuj2611@cluster0.7gveoww.mongodb.net/ecommerce_db", {
+mongoose.connect("mongodb://localhost:27017/ecommerce_db", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
@@ -41,6 +42,8 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin/users", adminUsersRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/predictions", predictionRoutes);
+
 
 
 const PORT = process.env.PORT || 5000;

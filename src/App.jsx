@@ -5,6 +5,8 @@ import Home from './pages/user/home.jsx';
 import AllProductsPage from './pages/user/AllProduct.jsx';
 import ProductDetail from './pages/user/ProductDetail.jsx';
 import Cart from './pages/user/Cart.jsx';
+import Checkout from './pages/user/Checkout.jsx';
+import OrderConfirmation from './pages/user/OrderConfirmation.jsx';
 
 // Admin imports
 import AdminLayout from './pages/admin/layout/AdminLayout.jsx';
@@ -16,6 +18,7 @@ import Customers from './pages/admin/Customers.jsx';
 import Reports from './pages/admin/Reports.jsx';
 import Settings from './pages/admin/Settings.jsx';
 import Categories from './pages/admin/Categories.jsx';
+import Predictions from './pages/admin/Predictions.jsx';
 
 function App() {
   return (
@@ -27,6 +30,8 @@ function App() {
         <Route path='/allProduct' element={<AllProductsPage/>}/>
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
         
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminLayout />}>
@@ -36,6 +41,7 @@ function App() {
           <Route path="categories" element={<Categories />} />
           <Route path="orders" element={<Orders />} />
           <Route path="customers" element={<Customers />} />
+          <Route path="predictions" element={<Predictions />} />
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<Settings />} />
         </Route>
